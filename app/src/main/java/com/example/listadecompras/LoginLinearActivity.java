@@ -2,6 +2,7 @@ package com.example.listadecompras;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -36,5 +37,29 @@ public class LoginLinearActivity extends AppCompatActivity {
             }
         });
     }
+    private void irParaLogin(){
+        // Criar a intenção
+        Intent intent = new Intent(this, MainActivity.class);
+
+        // Criar o pacote
+        Bundle bundle = new Bundle();
+
+        // Buscar o que o usuario digitou
+        String email = emailEditText.getEditableText().toString();
+
+        // Adicionar valores ao pacote
+        bundle.putString("EMAIL", email);
+
+        // Colocar o bundle na intent
+        intent.putExtras(bundle);
+
+        // Iniciar activity do intent
+        startActivity(intent);
     }
+
+    private void irParaCadastro(){
+        Intent intent = new Intent(this, RegisterActivity.class);
+        startActivity(intent);
+    }
+    
 }

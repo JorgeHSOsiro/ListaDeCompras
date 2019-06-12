@@ -25,7 +25,7 @@ public class RegisterActivity extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                botaoClicado(view)
+                botaoClicado(view);
             }
         });
 

@@ -61,5 +61,5 @@ public class LoginLinearActivity extends AppCompatActivity {
         Intent intent = new Intent(this, RegisterActivity.class);
         startActivity(intent);
     }
-    
+
 }

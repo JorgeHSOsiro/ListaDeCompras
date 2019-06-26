@@ -4,15 +4,15 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/colorPrimary"
+
     tools:context=".ComprasFragment">
 
-    <!-- TODO: Update blank fragment layout -->
-    <TextView
+    <androidx.recyclerview.widget.RecyclerView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:gravity="center"
-        android:textColor="@color/branco"
-        android:text="lista de compras" />
+        android:layout_margin="16dp"
+        android:id="@+id/compras_recycler_view">
+
+    </androidx.recyclerview.widget.RecyclerView>
 
 </FrameLayout>

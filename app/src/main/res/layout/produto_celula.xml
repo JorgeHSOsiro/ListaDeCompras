@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:id="@+id/produto_celula">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/quantidade_text_view"
+        android:textSize="30sp"
+        android:layout_margin="8dp"
+        android:textStyle="bold"
+        android:text="2"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/unidade_text_view"
+        android:textSize="30sp"
+        android:layout_margin= "8dp"
+        android:textStyle="bold"
+        android:text="kg"/>
+
+    <TextView
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:id="@+id/descricao_text_view"
+        android:text="Cebola"
+        android:layout_weight="1"
+        android:layout_margin="8dp"
+        android:textSize="28sp"/>
+
+    <CheckBox
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/comprado_checkbox"
+        android:layout_margin="8dp"/>
+
+</LinearLayout>

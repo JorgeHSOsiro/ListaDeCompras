@@ -50,20 +50,20 @@ public class LoginActivity extends AppCompatActivity {
         emailEDitText.setError(null);
         senhaEditText.setError(null);
 
-        if(emailDigitado.equals("joji@gmail.com")&& senhaDigitada.equals("12345")){
+//        if(emailDigitado.equals("joji@gmail.com")&& senhaDigitada.equals("12345")){
             Intent intent = new Intent(this, HomeActivity.class);
 
-            Bundle bundle = new Bundle();
-
-            bundle.putString("EMAIL",emailDigitado);
-
-            intent.putExtras(bundle);
+//            Bundle bundle = new Bundle();
+//
+//            bundle.putString("EMAIL",emailDigitado);
+//
+//            intent.putExtras(bundle);
 
             startActivity(intent);
-        }else{
-            emailEDitText.setError("Usuário e/ou senha incorreto(s)");
-            senhaEditText.setError("Usuário e/ou senha incorreto(s)");
-        }
+//        }else{
+//            emailEDitText.setError("Usuário e/ou senha incorreto(s)");
+//            senhaEditText.setError("Usuário e/ou senha incorreto(s)");
+//        }
     }
     private void irParaCadastro(){
         Intent intent = new Intent(this, RegisterActivity.class);

@@ -3,6 +3,8 @@ package com.example.listadecompras;
 import android.os.Bundle;
 
 import com.example.listadecompras.interfaces.FragmentActionsListener;
+import com.example.listadecompras.interfaces.NovaListaListener;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 
@@ -24,9 +26,12 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
 import android.view.Menu;
+import android.widget.Toast;
 
 public class HomeActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, FragmentActionsListener {
+        implements NavigationView.OnNavigationItemSelectedListener, FragmentActionsListener, BottomNavigationView.OnNavigationItemSelectedListener, NovaListaListener {
+
+    private BottomNavigationView bottomNavigationView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,6 +48,11 @@ public class HomeActivity extends AppCompatActivity
 
         NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+
+        bottomNavigationView = findViewById(R.id.botton_navigation);
+        bottomNavigationView.setOnNavigationItemSelectedListener(this);
+
+
     }
 
     @Override
@@ -87,5 +97,14 @@ public class HomeActivity extends AppCompatActivity
         transaction.replace(R.id.container_id, fragment);
         transaction.addToBackStack(null);
         transaction.commit();
+    }
+    @Override
+    public void criarNovaLista(String nome) {
+
+        FragmentManager manager = getSupportFragmentManager();
+        FragmentTransaction transaction = manager.beginTransaction();
+        transaction.remove(manager.findFragmentByTag("POPUP NOVA LISTA"));
+        transaction.commit();
+        Toast.makeText(this,"criando Lista " + nome, Toast.LENGTH_SHORT).show();
     }
 }

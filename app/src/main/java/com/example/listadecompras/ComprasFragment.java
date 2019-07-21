@@ -12,6 +12,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.example.listadecompras.adapter.ProdutoAdapter;
+import com.example.listadecompras.model.ListaCompras;
 import com.example.listadecompras.model.Produto;
 
 import java.util.ArrayList;
@@ -36,6 +37,14 @@ public class ComprasFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_compras, container, false);
 
         List<Produto> listaDeProdutos = getListaDeProdutos();
+
+        Bundle bundle = getArguments();
+
+        if(bundle != null) {
+            ListaCompras listaCompras = (ListaCompras) bundle.getSerializable("LISTA");
+            listaDeProdutos = listaCompras.getListaProdutos();
+        }
+
 
         ProdutoAdapter produtoAdapter = new ProdutoAdapter(listaDeProdutos);
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(view.getContext());

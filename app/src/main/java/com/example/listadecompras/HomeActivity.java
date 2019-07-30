@@ -1,35 +1,30 @@
 package com.example.listadecompras;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
-
-import com.example.listadecompras.interfaces.FragmentActionsListener;
-import com.example.listadecompras.interfaces.NovaListaListener;
-import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.snackbar.Snackbar;
-
-import android.view.View;
-
-import androidx.core.view.GravityCompat;
-import androidx.appcompat.app.ActionBarDrawerToggle;
-
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.TextView;
 
-import com.google.android.material.navigation.NavigationView;
-
-import androidx.drawerlayout.widget.DrawerLayout;
-
+import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
-import android.view.Menu;
-import android.widget.Toast;
+import com.example.listadecompras.interfaces.FragmentActionsListener;
+import com.example.listadecompras.util.Constantes;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.navigation.NavigationView;
 
 public class HomeActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, FragmentActionsListener, BottomNavigationView.OnNavigationItemSelectedListener, NovaListaListener {
+        implements NavigationView.OnNavigationItemSelectedListener,
+        FragmentActionsListener,
+        BottomNavigationView.OnNavigationItemSelectedListener {
 
     private BottomNavigationView bottomNavigationView;
 
@@ -49,9 +44,16 @@ public class HomeActivity extends AppCompatActivity
         NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
+        SharedPreferences sharedPreferences = getSharedPreferences(Constantes.SHARED_PREFERENCES, Context.MODE_PRIVATE);
+
+        String email = sharedPreferences.getString(Constantes.EMAIL,"not found");
+
         bottomNavigationView = findViewById(R.id.botton_navigation);
         bottomNavigationView.setOnNavigationItemSelectedListener(this);
 
+        View view = navigationView.getHeaderView(0);
+        TextView emailTextView = view.findViewById(R.id.menu_email_text_view);
+        emailTextView.setText(email);
 
     }
 
@@ -98,13 +100,5 @@ public class HomeActivity extends AppCompatActivity
         transaction.addToBackStack(null);
         transaction.commit();
     }
-    @Override
-    public void criarNovaLista(String nome) {
 
-        FragmentManager manager = getSupportFragmentManager();
-        FragmentTransaction transaction = manager.beginTransaction();
-        transaction.remove(manager.findFragmentByTag("POPUP NOVA LISTA"));
-        transaction.commit();
-        Toast.makeText(this,"criando Lista " + nome, Toast.LENGTH_SHORT).show();
-    }
 }

@@ -1,18 +1,28 @@
 package com.example.listadecompras.model;
 
+import androidx.room.ColumnInfo;
+import androidx.room.Entity;
+import androidx.room.ForeignKey;
+import androidx.room.PrimaryKey;
+
+@Entity(foreignKeys = @ForeignKey(entity = ListaCompras.class,
+        parentColumns = "id",
+        childColumns = "lista_compras_id"))
 public class Produto {
+    @PrimaryKey(autoGenerate = true)
+    private int id;
+    @ColumnInfo
     private String descricao;
+    @ColumnInfo
     private float quantidade;
+    @ColumnInfo
     private String unidade;
+    @ColumnInfo
     private boolean comprado;
 
-    public String getDescricao() {
-        return descricao;
-    }
+    @ColumnInfo(name = "lista_compras_id")
+    private int listaComprasId;
 
-    public void setDescricao(String descricao) {
-        this.descricao = descricao;
-    }
 
     public float getQuantidade() {
         return quantidade;
@@ -36,5 +46,29 @@ public class Produto {
 
     public void setComprado(boolean comprado) {
         this.comprado = comprado;
+    }
+
+    public int getListaComprasId() {
+        return listaComprasId;
+    }
+
+    public void setListaComprasId(int listaComprasId) {
+        this.listaComprasId = listaComprasId;
+    }
+
+    public String getDescricao() {
+        return descricao;
+    }
+
+    public void setDescricao(String descricao) {
+        this.descricao = descricao;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 }

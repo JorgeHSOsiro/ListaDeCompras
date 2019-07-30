@@ -1,28 +1,40 @@
 package com.example.listadecompras;
 
 
+import android.app.Dialog;
 import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Button;
 
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
+import androidx.room.Room;
 
 import com.example.listadecompras.adapter.ProdutoAdapter;
-import com.example.listadecompras.model.ListaCompras;
+import com.example.listadecompras.database.AppDatabase;
+import com.example.listadecompras.interfaces.ProdutoListener;
 import com.example.listadecompras.model.Produto;
+import com.example.listadecompras.util.Constantes;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.textfield.TextInputEditText;
 
-import java.util.ArrayList;
-import java.util.List;
+import io.reactivex.Completable;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.schedulers.Schedulers;
 
 
 /**
  * A simple {@link Fragment} subclass.
  */
-public class ComprasFragment extends Fragment {
+public class ComprasFragment extends Fragment implements ProdutoListener {
+
+    private FloatingActionButton fab;
+    private ProdutoAdapter produtoAdapter;
+    private int listaComprasId;
+    private AppDatabase db;
 
 
     public ComprasFragment() {
@@ -36,52 +48,101 @@ public class ComprasFragment extends Fragment {
 
         View view = inflater.inflate(R.layout.fragment_compras, container, false);
 
-        List<Produto> listaDeProdutos = getListaDeProdutos();
+        fab = view.findViewById(R.id.fab_produto);
+        db = Room.databaseBuilder(getContext(), AppDatabase.class, AppDatabase.DATABASE_NAME).build();
 
         Bundle bundle = getArguments();
 
-        if(bundle != null) {
-            ListaCompras listaCompras = (ListaCompras) bundle.getSerializable("LISTA");
-            listaDeProdutos = listaCompras.getListaProdutos();
+        if (bundle != null){
+            listaComprasId = bundle.getInt(Constantes.LISTA_ID);
         }
 
+        produtoAdapter = new ProdutoAdapter(this);
 
-        ProdutoAdapter produtoAdapter = new ProdutoAdapter(listaDeProdutos);
-        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(view.getContext());
+        setupRecyclerView(view);
 
-        RecyclerView recyclerView = view.findViewById(R.id.compras_recycler_view);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                exibirDialog();
+            }
+        });
 
-        recyclerView.setAdapter(produtoAdapter);
-        recyclerView.setLayoutManager(layoutManager);
-
+        exibirProdutos();
         return view;
     }
 
-    private List<Produto> getListaDeProdutos(){
-        List<Produto> listaDeProdutos = new ArrayList<>();
-        Produto produto1 = new Produto();
-        produto1.setQuantidade(2);
-        produto1.setUnidade("kg");
-        produto1.setDescricao("Cebola");
-        produto1.setComprado(false);
-        listaDeProdutos.add(produto1);
-
-        Produto produto2 = new Produto();
-        produto2.setQuantidade(1);
-        produto2.setUnidade("un.");
-        produto2.setDescricao("sabão");
-        produto2.setComprado(false);
-        listaDeProdutos.add(produto2);
-
-        Produto produto3 = new Produto();
-        produto3.setQuantidade(1);
-        produto3.setUnidade("kg");
-        produto3.setDescricao("Alcatra");
-        produto3.setComprado(false);
-        listaDeProdutos.add(produto3);
-
-        return  listaDeProdutos;
+    private void exibirProdutos() {
+        db.produtoDao()
+                .getListaProdutosByListaCompras(listaComprasId)
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribeOn(Schedulers.newThread())
+                .subscribe(listaProdutos -> produtoAdapter.atualizarProdutos(listaProdutos),
+                        throwable -> throwable.printStackTrace());
 
     }
 
+    private void exibirDialog() {
+        Dialog dialog = new Dialog(getContext());
+        dialog.setContentView(R.layout.dialog_novo_produto);
+
+        Button button = dialog.findViewById(R.id.ok_produto_button);
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Produto produto = new Produto();
+
+                TextInputEditText descricaoEditText = dialog.findViewById(R.id.descricao_produto_edit_text);
+                String descricao = descricaoEditText.getEditableText().toString();
+                produto.setDescricao(descricao);
+
+                TextInputEditText quantidadeEditText = dialog.findViewById(R.id.quantidade_produto_edit_text);
+                String quantidadeString = quantidadeEditText.getEditableText().toString();
+                float quantidade = Float.parseFloat(quantidadeString);
+                produto.setQuantidade(quantidade);
+
+                TextInputEditText unidadeEdiText = dialog.findViewById(R.id.unidade_produto_edit_text);
+                String unidade = unidadeEdiText.getEditableText().toString();
+                produto.setUnidade(unidade);
+
+                produto.setComprado(false);
+
+                produto.setListaComprasId(listaComprasId);
+
+                gravarProduto(produto);
+
+                dialog.dismiss();
+            }
+        });
+        dialog.show();
+    }
+
+    private void gravarProduto(Produto produto) {
+        Completable.fromAction(() -> db.produtoDao().inserir(produto))
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribeOn(Schedulers.newThread())
+                .subscribe(() -> exibirProdutos());
+
+    }
+
+    private void setupRecyclerView(View view) {
+        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(view.getContext());
+
+        RecyclerView recyclerView = view.findViewById(R.id.produtos_recycler_view);
+
+        recyclerView.setAdapter(produtoAdapter);
+        recyclerView.setLayoutManager(layoutManager);
+    }
+
+    private void atualizarProduto(Produto produto){
+        Completable.fromAction(()-> db.produtoDao().update(produto))
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribeOn(Schedulers.newThread())
+                .subscribe(() -> exibirProdutos());
+    }
+
+    @Override
+    public void atualizarProdutoComprado(Produto produto) {
+        atualizarProduto(produto);
+    }
 }

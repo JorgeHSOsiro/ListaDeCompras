@@ -1,14 +1,17 @@
 package com.example.listadecompras.model;
 
+import androidx.room.ColumnInfo;
+import androidx.room.Entity;
+import androidx.room.PrimaryKey;
+
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
 
+@Entity
 public class ListaCompras implements Serializable {
+    @PrimaryKey(autoGenerate = true)
+    private int id;
+    @ColumnInfo(name = "nome")
     private String nome;
-    private List<Produto> listaProdutos = new ArrayList<>();
-
-
 
     public String getNome() {
         return nome;
@@ -18,11 +21,11 @@ public class ListaCompras implements Serializable {
         this.nome = nome;
     }
 
-    public List<Produto> getListaProdutos() {
-        return listaProdutos;
+    public int getId() {
+        return id;
     }
 
-    public void setListaProdutos(List<Produto> listaProdutos) {
-        this.listaProdutos = listaProdutos;
+    public void setId(int id) {
+        this.id = id;
     }
 }

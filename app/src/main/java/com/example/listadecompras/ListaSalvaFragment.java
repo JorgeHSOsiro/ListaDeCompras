@@ -1,30 +1,35 @@
 package com.example.listadecompras;
 
 
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.os.Bundle;
-
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentTransaction;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
+import android.widget.Button;
+import android.widget.ProgressBar;
+
+import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.room.Room;
 
 import com.example.listadecompras.adapter.ListaSalvaAdapter;
+import com.example.listadecompras.database.AppDatabase;
 import com.example.listadecompras.interfaces.FragmentActionsListener;
 import com.example.listadecompras.interfaces.ListaComprasListener;
-import com.example.listadecompras.interfaces.NovaListaListener;
 import com.example.listadecompras.model.ListaCompras;
-import com.example.listadecompras.model.Produto;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.textfield.TextInputEditText;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.concurrent.TimeUnit;
+
+import io.reactivex.Completable;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.schedulers.Schedulers;
 
 
 /**
@@ -35,6 +40,9 @@ public class ListaSalvaFragment extends Fragment implements ListaComprasListener
     private RecyclerView recyclerView;
     private FragmentActionsListener fragmentActionsListener;
     private FloatingActionButton floatingActionButton;
+    private AppDatabase db;
+    private ListaSalvaAdapter listaSalvaAdapter;
+    private ProgressBar progressBar;
 
     public ListaSalvaFragment() {
         // Required empty public constructor
@@ -45,28 +53,100 @@ public class ListaSalvaFragment extends Fragment implements ListaComprasListener
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_lista_salva, container, false);
+
+        db = Room.databaseBuilder(getContext(),
+                AppDatabase.class, AppDatabase.DATABASE_NAME).build();
+
         recyclerView = view.findViewById(R.id.lista_salva_recycler_view);
-        floatingActionButton = view.findViewById(R.id.fab_lista_salva);
-
-        floatingActionButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
-                FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-                fragmentTransaction.add(R.id.container_lista_salva_id, new NovaListaComprasFragment(),"POPUP NOVA LISTA");
-                fragmentTransaction.commit();
-            }
-        });
-
-        ListaSalvaAdapter listaSalvaAdapter = new ListaSalvaAdapter(getListaComprasList(),this);
+        progressBar = view.findViewById(R.id.progress_bar);
+        listaSalvaAdapter = new ListaSalvaAdapter(this);
 
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getActivity());
-
         recyclerView.setAdapter(listaSalvaAdapter);
         recyclerView.setLayoutManager(layoutManager);
 
+        floatingActionButton = view.findViewById(R.id.fab_lista_salva);
+        floatingActionButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                exibirDialog();
+            }
+        });
+
+        exibirListaCompras();
 
         return view;
+    }
+
+    @Override
+    public void deletarListaCompras(ListaCompras listaCompras){
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        builder.setTitle("Lista compras App");
+        builder.setMessage("Deseja deletar a lista" + listaCompras.getNome()+"?");
+
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                Completable.fromAction(() -> db.listaComprasDao().delete(listaCompras))
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribeOn(Schedulers.newThread())
+                        .subscribe();
+                exibirListaCompras();
+                dialogInterface.dismiss();
+            }
+        });
+        builder.setNegativeButton("Cancelar", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                dialogInterface.dismiss();
+            }
+        });
+        builder.create().show();
+    }
+
+
+
+    private void exibirListaCompras() {
+        progressBar.setVisibility(View.VISIBLE);
+        db.listaComprasDao()
+                .getAll()
+                .delaySubscription(1, TimeUnit.SECONDS)
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribeOn(Schedulers.newThread())
+                .subscribe(listaComprasList -> {
+                    listaSalvaAdapter.atualizarLista(listaComprasList);
+                    progressBar.setVisibility(View.GONE);
+                }, throwable -> throwable.printStackTrace());
+
+    }
+
+    private void exibirDialog() {
+        final Dialog dialog = new Dialog(getContext());
+        dialog.setContentView(R.layout.fragment_nova_lista_compras);
+        dialog.show();
+
+        Button okDialogButton = dialog.findViewById(R.id.nova_lista_ok_button);
+        okDialogButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                ListaCompras listaCompras = new ListaCompras();
+
+                TextInputEditText nomeTextInputEditText = dialog.findViewById(R.id.nome_lista_edit_text);
+                String nomeDigitado = nomeTextInputEditText.getEditableText().toString();
+
+                listaCompras.setNome(nomeDigitado);
+                gravarListaCompras(listaCompras);
+
+                dialog.dismiss();
+            }
+        });
+    }
+
+    private void gravarListaCompras(final ListaCompras listaCompras) {
+        Completable.fromAction(() -> db.listaComprasDao().insertAll(listaCompras))
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribeOn(Schedulers.newThread())
+                .subscribe(() -> exibirListaCompras());
     }
 
     @Override
@@ -75,51 +155,6 @@ public class ListaSalvaFragment extends Fragment implements ListaComprasListener
 
         fragmentActionsListener =(FragmentActionsListener) context;
 
-    }
-
-    private List<ListaCompras> getListaComprasList(){
-        List<ListaCompras> listaComprasList = new ArrayList<>();
-
-        ListaCompras listaCompras = new ListaCompras();
-        listaCompras.setNome("Compras Supermercado");
-        listaComprasList.add(listaCompras);
-
-        Produto produto1 = new Produto();
-        produto1.setDescricao("Cebola");
-        produto1.setUnidade("kg");
-        produto1.setQuantidade(3);
-        listaCompras.getListaProdutos().add(produto1);
-
-        Produto produto2 = new Produto();
-        produto2.setDescricao("Sabão em pó");
-        produto2.setQuantidade(1);
-        produto2.setUnidade("caixa");
-        listaCompras.getListaProdutos().add(produto2);
-
-        ListaCompras listaCompras1 = new ListaCompras();
-        listaCompras1.setNome("Churrasco");
-        listaComprasList.add(listaCompras1);
-
-        Produto produto3 = new Produto();
-        produto3.setDescricao("Carvão");
-        produto3.setQuantidade(2);
-        produto3.setUnidade("pacote");
-
-        listaCompras1.getListaProdutos().add(produto3);
-
-        ListaCompras listaCompras2 = new ListaCompras();
-        listaCompras2.setNome("Açougue");
-        listaComprasList.add(listaCompras2);
-
-        ListaCompras listaCompras3 = new ListaCompras();
-        listaCompras3.setNome("Feira");
-        listaComprasList.add(listaCompras3);
-
-        ListaCompras listaCompras4 = new ListaCompras();
-        listaCompras4.setNome("Pet Shop");
-        listaComprasList.add(listaCompras4);
-
-        return listaComprasList;
     }
 
     @Override

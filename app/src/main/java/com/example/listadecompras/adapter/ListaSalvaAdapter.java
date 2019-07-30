@@ -12,15 +12,21 @@ import com.example.listadecompras.R;
 import com.example.listadecompras.interfaces.ListaComprasListener;
 import com.example.listadecompras.model.ListaCompras;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class ListaSalvaAdapter extends RecyclerView.Adapter<ListaSalvaAdapter.ViewHolder> {
     private List<ListaCompras> listaComprasList;
     private ListaComprasListener listaComprasListener;
 
-    public ListaSalvaAdapter(List<ListaCompras>listaCompras, ListaComprasListener listaComprasListener){
-        this.listaComprasList = listaCompras;
+    public ListaSalvaAdapter( ListaComprasListener listaComprasListener){
+        this.listaComprasList = new ArrayList<>();
         this.listaComprasListener = listaComprasListener;
+    }
+
+    public void atualizarLista(List<ListaCompras> listaComprasList){
+        this.listaComprasList = listaComprasList;
+        notifyDataSetChanged();
     }
 
     @NonNull

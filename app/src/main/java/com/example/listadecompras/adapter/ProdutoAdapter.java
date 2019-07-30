@@ -4,22 +4,32 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.listadecompras.R;
+import com.example.listadecompras.interfaces.ProdutoListener;
 import com.example.listadecompras.model.Produto;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class ProdutoAdapter extends RecyclerView.Adapter<ProdutoAdapter.ViewHolder>  {
 
     private List<Produto> listaDeProdutos;
+    private ProdutoListener produtoListener;
 
-    public ProdutoAdapter(List<Produto> listaDeProdutos) {
+    public ProdutoAdapter(ProdutoListener produtoListener) {
+        this.listaDeProdutos = new ArrayList<>();
+        this.produtoListener = produtoListener;
+    }
+
+    public void atualizarProdutos(List<Produto> listaDeProdutos){
         this.listaDeProdutos = listaDeProdutos;
+        notifyDataSetChanged();
     }
 
     @NonNull
@@ -53,11 +63,19 @@ public class ProdutoAdapter extends RecyclerView.Adapter<ProdutoAdapter.ViewHold
             unidadeTextView = itemView.findViewById(R.id.unidade_text_view);
             compradoCheckbox = itemView.findViewById(R.id.comprado_checkbox);
         }
-        private void setupProduto(Produto produto){
+        private void setupProduto(final Produto produto){
             descricaoTextView.setText(produto.getDescricao());
             unidadeTextView.setText(produto.getUnidade());
             quantidadeTextView.setText(""+produto.getQuantidade());
             compradoCheckbox.setChecked(produto.isComprado());
+
+            compradoCheckbox.setOnCheckedChangeListener(new CheckBox.OnCheckedChangeListener(){
+                @Override
+                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked){
+                    produto.setComprado(isChecked);
+                    produtoListener.atualizarProdutoComprado(produto);
+                }
+            });
         }
     }
 }
